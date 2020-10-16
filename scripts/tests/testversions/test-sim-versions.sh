@@ -169,8 +169,6 @@ echo "Setting up environments for versions" ${unique_versions}
 # clean up git worktree
 git worktree prune
 for version in ${unique_versions}; do
-    # run in parallel
-    #(
         dir=$(version_dir ${version})
         bin_dir=${dir}/bin
 
@@ -200,7 +198,7 @@ for version in ${unique_versions}; do
             echo "finished installing"
 
             echo "Setting up storj-sim for ${version}. Bin: ${bin_dir}, Config: ${dir}/local-network"
-            PATH=${bin_dir}:$PATH storj-sim -x --host="${STORJ_NETWORK_HOST4}" --postgres="${STORJ_SIM_POSTGRES}" --config-dir "${dir}/local-network" network setup
+            PATH=${bin_dir}:$PATH storj-sim -x --host="${STORJ_NETWORK_HOST4}" --postgres="${STORJ_SIM_POSTGRES}" --config-dir "${dir}/local-network" network setup >/dev/null 2>&1
             echo "Finished setting up. ${dir}/local-network:" $(ls ${dir}/local-network)
             echo "Binary shasums:"
             shasum ${bin_dir}/satellite
@@ -219,18 +217,7 @@ for version in ${unique_versions}; do
             echo "Binary shasums:"
             shasum ${bin_dir}/uplink
         fi
-#    ) &
 done
-
-#for job in `jobs -p`
-#do
-#    echo "wait for $job"
-#    RESULT=0
-#    wait $job || RESULT=1
-#    if [ "$RESULT" == "1" ]; then
-#           exit $?
-#    fi
-#done
 
 # Use stage 1 satellite version as the starting state. Create a cp of that
 # version folder so we don't worry about dirty states. Then copy/link/mv
