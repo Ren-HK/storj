@@ -49,9 +49,9 @@ populate_sno_versions(){
 # in stage 2: satellite core uses latest release version and satellite api uses master. Storage nodes are split into half on latest release version and half on master. Uplink uses the latest release version plus master
 BRANCH_NAME=${BRANCH_NAME:-""}
 git fetch --tags
+# if it's running on a release branch, we will set the stage 1 version to be the latest previous major release
+# if it's running on master, we will set the stage 1 version to be the current release version
 current_commit=$(git rev-parse HEAD)
-# if it's running on a release branch, we will set the stage 1 version to be the previous release
-# if it's running on master, we will set the stage 1 version to be the current release
 stage1_release_version=$(git tag -l --sort -version:refname | grep -v rc | head -1)
 if [[ $BRANCH_NAME = v* ]]; then
     current_major_release_version=$(git describe --tags $current_commit | cut -d '.' -f 1-2)
