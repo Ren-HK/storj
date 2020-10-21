@@ -97,7 +97,7 @@ install_sim(){
         rm -rf .build/gateway-tmp
         mkdir -p .build/gateway-tmp
         pushd .build/gateway-tmp
-            go mod init gatewaybuild && go mod edit -replace github.com/minio/minio=github.com/storj/minio@storj && GOBIN=${bin_dir} GO111MODULE=on go get storj.io/gateway@master
+            go mod init gatewaybuild && GOBIN=${bin_dir} GO111MODULE=on go get storj.io/gateway@latest
         popd
     fi
 }
@@ -181,6 +181,8 @@ for version in ${unique_versions}; do
         else
             git worktree add -f "$dir" "${version}"
         fi
+
+        rm -f ${dir}/internal/version/release.go
         if [ -d "${dir}/private/version/release.go" ]; then
             # clear out release information
             cat > ${dir}/private/version/release.go <<-EOF
@@ -189,7 +191,7 @@ for version in ${unique_versions}; do
 		package version
 		EOF
         fi
-        rm -f ${dir}/internal/version/release.go
+
         if [[ $version = $current_release_version || $version = "master" ]]
         then
 
@@ -198,7 +200,7 @@ for version in ${unique_versions}; do
             echo "finished installing"
 
             echo "Setting up storj-sim for ${version}. Bin: ${bin_dir}, Config: ${dir}/local-network"
-            PATH=${bin_dir}:$PATH storj-sim -x --host="${STORJ_NETWORK_HOST4}" --postgres="${STORJ_SIM_POSTGRES}" --config-dir "${dir}/local-network" network setup
+            PATH=${bin_dir}:$PATH storj-sim -x --host="${STORJ_NETWORK_HOST4}" --postgres="${STORJ_SIM_POSTGRES}" --config-dir "${dir}/local-network" network setup > /dev/null 2>&1
             echo "Finished setting up. ${dir}/local-network:" $(ls ${dir}/local-network)
             echo "Binary shasums:"
             shasum ${bin_dir}/satellite
