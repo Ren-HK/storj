@@ -166,9 +166,18 @@ fi
 
 echo "Setting up environments for versions" ${unique_versions}
 
+# create a result file for each child process' exit code
+exit_statuses_dir=${TMP}/exit_statuses
+mkdir ${exit_statuses_dir}
+write_exit_status(){
+    echo $? > ${exit_statuses_dir}/${version}
+}
 # clean up git worktree
 git worktree prune
 for version in ${unique_versions}; do
+    # run in parallel
+    (
+        trap write_exit_status EXIT
         dir=$(version_dir ${version})
         bin_dir=${dir}/bin
 
@@ -217,7 +226,12 @@ for version in ${unique_versions}; do
             echo "Binary shasums:"
             shasum ${bin_dir}/uplink
         fi
+    ) &
 done
+
+wait # wait for all child processes to finish
+# iterate through those result files to check their exit code
+grep -qvwr "0" ${exit_statuses_dir} && exit 1
 
 # Use stage 1 satellite version as the starting state. Create a cp of that
 # version folder so we don't worry about dirty states. Then copy/link/mv
